@@ -70,12 +70,16 @@ class ExpenseTracker:
         conn.commit()
         conn.close()
 
-    def view_expenses(self, user_id):
-        """View expenses for a specific user in SQLite."""
-        conn = sqlite3.connect(self.expense_db_path)
+    def view_expense(self, user_id):
+        """View expenses for a specific user in PostgreSQL."""
+        conn = psycopg2.connect(**self.user_db_credentials)
         cursor = conn.cursor()
-        cursor.execute('''SELECT description, amount, category, date_added 
-                          FROM expenses WHERE user_id = ?''', (user_id,))
+        cursor.execute('''
+            SELECT description, amount, category, date_added 
+            FROM expenses 
+            WHERE user_id = %s
+        ''', (user_id,))
         expenses = cursor.fetchall()
         conn.close()
+
         return expenses
