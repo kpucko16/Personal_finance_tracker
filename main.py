@@ -5,7 +5,7 @@ def main():
         'host': 'localhost',
         'dbname': 'finance_tracker_user_db',
         'user': 'tracker_user',
-        'password': 'your_password'
+        'password': '08131973KRis'
     }
     tracker = ExpenseTracker(user_db_credentials=user_db_credentials)
 

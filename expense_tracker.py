@@ -61,7 +61,7 @@ class ExpenseTracker:
         else:
             return None
 
-    def add_expense(self, description, amount, category, user_id):
+    def add_expenses(self, description, amount, category, user_id):
         """Add a new expense in SQLite."""
         conn = sqlite3.connect(self.expense_db_path)
         cursor = conn.cursor()
