@@ -28,10 +28,33 @@ def main():
             user_id = tracker.authenticate_user(username, password)
             if user_id:
                 print(f"Welcome {username}!")
-                # Proceed to expense tracking functions
-                break
+                # After login, allow user to track expenses
+                while True:
+                    print("\n--- Expense Tracker ---")
+                    print("1. Add Expense")
+                    print("2. View Expenses")
+                    print("3. Log out")
+                    expense_choice = input("Please select an option: ")
+
+                    if expense_choice == '1':
+                        description = input("Enter expense description: ")
+                        amount = float(input("Enter expense amount: "))
+                        category = input("Enter expense category (optional): ")
+                        tracker.add_expenses(user_id, description, amount, category)
+                        print("Expense added successfully.")
+                    elif expense_choice == '2':
+                        expenses = tracker.view_expenses(user_id)
+                        print("\n--- Your Expenses ---")
+                        for expense in expenses:
+                            print(f"{expense[0]} - {expense[1]} - {expense[2]} - {expense[3]} - {expense[4]}")
+                    elif expense_choice == '3':
+                        print("Logging out... Goodbye!")
+                        break
             else:
                 print("Invalid credentials.")
         elif choice == '3':
             print("Exiting... Goodbye!")
             break
+
+if __name__ == "__main__":
+    main()

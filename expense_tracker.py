@@ -1,8 +1,6 @@
 import sqlite3
 import psycopg2
-from psycopg2 import sql
 from werkzeug.security import generate_password_hash, check_password_hash
-
 
 class ExpenseTracker:
     def __init__(self, expense_db_path="/var/finance_tracker/finance_tracker.db", user_db_credentials=None):
@@ -11,7 +9,9 @@ class ExpenseTracker:
         self.initialize_db()
 
     def initialize_db(self):
-        """Ensure the expenses table exists in SQLite."""
+        """Ensure the expenses and users tables exist in SQLite and PostgreSQL."""
+
+        # SQLite database initialization for expenses
         conn = sqlite3.connect(self.expense_db_path)
         cursor = conn.cursor()
         cursor.execute('''
@@ -28,9 +28,23 @@ class ExpenseTracker:
         conn.commit()
         conn.close()
 
+        # PostgreSQL database initialization for users
+        if self.user_db_credentials:
+            conn = psycopg2.connect(**self.user_db_credentials)
+            cursor = conn.cursor()
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+            ''')
+            conn.commit()
+            conn.close()
+
     # User management functions
     def create_user(self, username, password):
-        """Create a new user, storing hashed password in PostgreSQL."""
+        """Create a new user, storing the hashed password in PostgreSQL."""
         hashed_password = generate_password_hash(password)  # Hash the password before storing
         conn = psycopg2.connect(**self.user_db_credentials)
         cursor = conn.cursor()
@@ -66,22 +80,31 @@ class ExpenseTracker:
         conn.close()
 
     def view_expenses(self, user_id):
-        """Retrieve all expenses for a specific user."""
+        """View all expenses for a specific user."""
         conn = sqlite3.connect(self.expense_db_path)
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM expenses WHERE user_id = ?', (user_id,))
-        rows = cursor.fetchall()
+        cursor.execute('''
+        SELECT id, description, amount, category, date_added FROM expenses
+        WHERE user_id = ?
+        ''', (user_id,))
+        expenses = cursor.fetchall()
         conn.close()
-        return rows
+        return expenses
 
     def calculate_total(self, user_id, category=None):
-        """Calculate the total expenses for a user."""
+        """Calculate the total expenses for a specific user, optionally filtered by category."""
         conn = sqlite3.connect(self.expense_db_path)
         cursor = conn.cursor()
         if category:
-            cursor.execute('SELECT SUM(amount) FROM expenses WHERE user_id = ? AND category = ?', (user_id, category))
+            cursor.execute('''
+            SELECT SUM(amount) FROM expenses
+            WHERE user_id = ? AND category = ?
+            ''', (user_id, category))
         else:
-            cursor.execute('SELECT SUM(amount) FROM expenses WHERE user_id = ?', (user_id,))
-        total = cursor.fetchone()[0] or 0  # Default to 0 if no results
+            cursor.execute('''
+            SELECT SUM(amount) FROM expenses
+            WHERE user_id = ?
+            ''', (user_id,))
+        total = cursor.fetchone()[0]
         conn.close()
-        return total
+        return total if total else 0
