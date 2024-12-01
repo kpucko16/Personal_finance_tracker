@@ -1,36 +1,37 @@
 from expense_tracker import ExpenseTracker
 
+def main():
+    user_db_credentials = {
+        'host': 'localhost',
+        'dbname': 'finance_tracker_user_db',
+        'user': 'tracker_user',
+        'password': 'your_password'
+    }
+    tracker = ExpenseTracker(user_db_credentials=user_db_credentials)
 
-def display_menu():
-    tracker = ExpenseTracker()
+    # User creation and login flow
     while True:
-        print('\n--- Finance Tracker ---')
-        print("1. Add Expenses")
-        print("2. View Expenses")
-        print("3. Total expenses")
-        print("4. Exit")
-
+        print("\n--- Finance Tracker ---")
+        print("1. Create User")
+        print("2. Login")
+        print("3. Exit")
         choice = input("Please select an option: ")
 
         if choice == '1':
-            expenses_description = input("Enter expense description: ")
-            expenses_amount = input("Amount: ")
-            category = input("Enter expense Category: ")
-            tracker.add_expenses(expenses_description, expenses_amount, category)
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+            tracker.create_user(username, password)
+            print("User created successfully.")
         elif choice == '2':
-            print("\n--- Your Expenses ---")
-            print(tracker.view_expenses())
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+            user_id = tracker.authenticate_user(username, password)
+            if user_id:
+                print(f"Welcome {username}!")
+                # Proceed to expense tracking functions
+                break
+            else:
+                print("Invalid credentials.")
         elif choice == '3':
-            category = input("Enter category (or press Enter to calculate for all categories): ")
-            if category == '':
-                category = None
-            print(tracker.calculate_total(category))
-        elif choice == '4':
             print("Exiting... Goodbye!")
             break
-        else:
-            print("Invalid option. Please try again.")
-
-
-if __name__ == '__main__':
-    display_menu()
