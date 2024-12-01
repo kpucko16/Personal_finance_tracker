@@ -14,8 +14,7 @@ class ExpenseTracker:
         # SQLite database initialization for expenses
         conn = sqlite3.connect(self.expense_db_path)
         cursor = conn.cursor()
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS expenses (
+        cursor.execute('''CREATE TABLE IF NOT EXISTS expenses (
             id INTEGER PRIMARY KEY,
             description TEXT NOT NULL,
             amount REAL NOT NULL,
@@ -23,8 +22,7 @@ class ExpenseTracker:
             date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             user_id INTEGER,
             FOREIGN KEY(user_id) REFERENCES users(id)
-        )
-        ''')
+        )''')
         conn.commit()
         conn.close()
 
@@ -32,13 +30,11 @@ class ExpenseTracker:
         if self.user_db_credentials:
             conn = psycopg2.connect(**self.user_db_credentials)
             cursor = conn.cursor()
-            cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
+            cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL
-            )
-            ''')
+            )''')
             conn.commit()
             conn.close()
 
@@ -48,9 +44,7 @@ class ExpenseTracker:
         hashed_password = generate_password_hash(password)  # Hash the password before storing
         conn = psycopg2.connect(**self.user_db_credentials)
         cursor = conn.cursor()
-        cursor.execute('''
-        INSERT INTO users (username, password) VALUES (%s, %s)
-        ''', (username, hashed_password))
+        cursor.execute('''INSERT INTO users (username, password) VALUES (%s, %s)''', (username, hashed_password))
         conn.commit()
         conn.close()
 
@@ -65,46 +59,23 @@ class ExpenseTracker:
         if user and check_password_hash(user[1], password):
             return user[0]  # Return the user ID
         else:
-            return None  # Authentication failed
+            return None
 
-    # Expense functions
-    def add_expenses(self, user_id, description, amount, category=None):
-        """Add an expense for a specific user."""
+    def add_expense(self, description, amount, category, user_id):
+        """Add a new expense in SQLite."""
         conn = sqlite3.connect(self.expense_db_path)
         cursor = conn.cursor()
-        cursor.execute('''
-        INSERT INTO expenses (description, amount, category, user_id)
-        VALUES (?, ?, ?, ?)
-        ''', (description, amount, category, user_id))
+        cursor.execute('''INSERT INTO expenses (description, amount, category, user_id) 
+                          VALUES (?, ?, ?, ?)''', (description, amount, category, user_id))
         conn.commit()
         conn.close()
 
     def view_expenses(self, user_id):
-        """View all expenses for a specific user."""
+        """View expenses for a specific user in SQLite."""
         conn = sqlite3.connect(self.expense_db_path)
         cursor = conn.cursor()
-        cursor.execute('''
-        SELECT id, description, amount, category, date_added FROM expenses
-        WHERE user_id = ?
-        ''', (user_id,))
+        cursor.execute('''SELECT description, amount, category, date_added 
+                          FROM expenses WHERE user_id = ?''', (user_id,))
         expenses = cursor.fetchall()
         conn.close()
         return expenses
-
-    def calculate_total(self, user_id, category=None):
-        """Calculate the total expenses for a specific user, optionally filtered by category."""
-        conn = sqlite3.connect(self.expense_db_path)
-        cursor = conn.cursor()
-        if category:
-            cursor.execute('''
-            SELECT SUM(amount) FROM expenses
-            WHERE user_id = ? AND category = ?
-            ''', (user_id, category))
-        else:
-            cursor.execute('''
-            SELECT SUM(amount) FROM expenses
-            WHERE user_id = ?
-            ''', (user_id,))
-        total = cursor.fetchone()[0]
-        conn.close()
-        return total if total else 0
