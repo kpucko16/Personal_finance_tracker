@@ -43,10 +43,14 @@ def main():
                         tracker.add_expenses(user_id, description, amount, category)
                         print("Expense added successfully.")
                     elif expense_choice == '2':
-                        expenses = tracker.view_expenses(user_id)
-                        print("\n--- Your Expenses ---")
-                        for expense in expenses:
-                            print(f"{expense[0]} - {expense[1]} - {expense[2]} - {expense[3]} - {expense[4]}")
+                        expenses = tracker.view_expense(user_id)
+                        if expenses:
+                            print("--- Your Expenses ---")
+                            for expense in expenses:
+                                print(
+                                    f"Description: {expense[0]}, Amount: {expense[1]}, Category: {expense[2]}, Date Added: {expense[3]}")
+                        else:
+                            print("No expenses found.")
                     elif expense_choice == '3':
                         print("Logging out... Goodbye!")
                         break
@@ -55,6 +59,7 @@ def main():
         elif choice == '3':
             print("Exiting... Goodbye!")
             break
+
 
 if __name__ == "__main__":
     main()
