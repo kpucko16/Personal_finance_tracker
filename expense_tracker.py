@@ -57,6 +57,7 @@ class ExpenseTracker:
         conn.close()
 
         if user and check_password_hash(user[1], password):
+            print(f"Authenticated user {username} with user_id: {user[0]}")  # Debugging line
             return user[0]  # Return the user ID
         else:
             return None
@@ -71,15 +72,19 @@ class ExpenseTracker:
         conn.close()
 
     def view_expense(self, user_id):
-        """View expenses for a specific user in PostgreSQL."""
-        conn = psycopg2.connect(**self.user_db_credentials)
+        """View expenses for a specific user in SQLite."""
+        print(f"Looking for expenses for user_id: {user_id}")  # Debugging line
+        conn = sqlite3.connect(self.expense_db_path)
         cursor = conn.cursor()
-        cursor.execute('''
-            SELECT description, amount, category, date_added 
-            FROM expenses 
-            WHERE user_id = %s
-        ''', (user_id,))
+        cursor.execute('''SELECT description, amount, category, date_added 
+                          FROM expenses WHERE user_id = ?''', (int(user_id),))  # Ensure user_id is an integer
         expenses = cursor.fetchall()
         conn.close()
 
+        if expenses:
+            print("Found expenses:", expenses)  # Debugging line
+        else:
+            print("No expenses found.")  # Debugging line
+
         return expenses
+
